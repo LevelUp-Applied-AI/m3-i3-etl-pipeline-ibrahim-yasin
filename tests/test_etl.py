@@ -7,21 +7,93 @@ Write at least 3 tests:
 """
 import pandas as pd
 import pytest
+from etl_pipeline import transform, validate
 
 
 def test_transform_filters_cancelled():
     """Create test DataFrames with a cancelled order. Confirm it's excluded."""
-    # TODO: Implement
-    pass
+    data = {
+        "customers": pd.DataFrame({
+            "customer_id": [1],
+            "customer_name": ["Ahmad"],
+            "email": ["ahmad@test.com"],
+            "city": ["Amman"],
+            "registration_date": ["2024-01-01"]
+        }),
+        "products": pd.DataFrame({
+            "product_id": [1],
+            "product_name": ["Keyboard"],
+            "category": ["Electronics"],
+            "unit_price": [100.0]
+        }),
+        "orders": pd.DataFrame({
+            "order_id": [1, 2],
+            "customer_id": [1, 1],
+            "order_date": ["2024-01-01", "2024-01-02"],
+            "status": ["completed", "cancelled"]
+        }),
+        "order_items": pd.DataFrame({
+            "item_id": [1, 2],
+            "order_id": [1, 2],
+            "product_id": [1, 1],
+            "quantity": [1, 1]
+        })
+    }
+
+    result = transform(data)
+
+    assert len(result) == 1
+    assert result.loc[0, "total_orders"] == 1
+    assert result.loc[0, "total_revenue"] == 100.0
 
 
 def test_transform_filters_suspicious_quantity():
     """Create test DataFrames with quantity > 100. Confirm it's excluded."""
-    # TODO: Implement
-    pass
+    data = {
+        "customers": pd.DataFrame({
+            "customer_id": [1],
+            "customer_name": ["Ahmad"],
+            "email": ["ahmad@test.com"],
+            "city": ["Amman"],
+            "registration_date": ["2024-01-01"]
+        }),
+        "products": pd.DataFrame({
+            "product_id": [1],
+            "product_name": ["Keyboard"],
+            "category": ["Electronics"],
+            "unit_price": [100.0]
+        }),
+        "orders": pd.DataFrame({
+            "order_id": [1, 2],
+            "customer_id": [1, 1],
+            "order_date": ["2024-01-01", "2024-01-02"],
+            "status": ["completed", "completed"]
+        }),
+        "order_items": pd.DataFrame({
+            "item_id": [1, 2],
+            "order_id": [1, 2],
+            "product_id": [1, 1],
+            "quantity": [1, 150]
+        })
+    }
+
+    result = transform(data)
+
+    assert len(result) == 1
+    assert result.loc[0, "total_orders"] == 1
+    assert result.loc[0, "total_revenue"] == 100.0
 
 
 def test_validate_catches_nulls():
     """Create a DataFrame with null customer_id. Confirm validate() raises ValueError."""
-    # TODO: Implement
-    pass
+    df = pd.DataFrame({
+        "customer_id": [1, None],
+        "customer_name": ["Ahmad", "Sara"],
+        "total_orders": [2, 1],
+        "total_revenue": [200.0, 150.0],
+        "avg_order_value": [100.0, 150.0],
+        "top_category": ["Electronics", "Books"]
+    })
+
+    with pytest.raises(ValueError):
+        validate(df)

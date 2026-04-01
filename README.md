@@ -3,7 +3,28 @@
 
 ## Overview
 
-<!-- What does this pipeline do? -->
+This project implements an ETL pipeline for customer analytics using data from the Amman Digital Market PostgreSQL database.
+
+The pipeline performs four main steps:
+
+1. **Extract** data from the source PostgreSQL tables:
+   - `customers`
+   - `products`
+   - `orders`
+   - `order_items`
+
+2. **Transform** the raw data into customer-level analytics by:
+   - joining orders, order items, products, and customers
+   - calculating item-level revenue
+   - excluding cancelled orders
+   - excluding suspicious quantities greater than 100
+   - aggregating results to the customer level
+
+3. **Validate** the transformed data with quality checks
+
+4. **Load** the final customer summary into:
+   - a PostgreSQL table called `customer_analytics`
+   - a CSV file at `output/customer_analytics.csv`
 
 ## Setup
 
@@ -34,12 +55,25 @@ python etl_pipeline.py
 
 ## Quality Checks
 
-<!-- What validations are performed and why? -->
+The pipeline performs several validation checks on the transformed data before loading it to ensure data quality and reliability.
 
----
+### Checks performed
 
-## License
+- **No null customer_id**
+  - Ensures every record has a valid unique identifier
 
-This repository is provided for educational use only. See [LICENSE](LICENSE) for terms.
+- **No null customer_name**
+  - Ensures all records are readable and complete
 
-You may clone and modify this repository for personal learning and practice, and reference code you wrote here in your professional portfolio. Redistribution outside this course is not permitted.
+- **Positive total_revenue**
+  - Ensures each customer has meaningful transaction data
+
+- **No duplicate customer_id**
+  - Ensures each customer appears only once in the final output
+
+- **Positive total_orders**
+  - Ensures each customer has at least one valid order
+
+### Why these checks matter
+
+These validations help catch data issues early and prevent invalid or misleading data from being loaded into the database or exported to the CSV file. They ensure the final dataset is clean, consistent, and suitable for analytics.
